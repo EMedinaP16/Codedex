@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clasificador Automático de Riesgo para Dispositivos Médicos</title>
+  <style>
+    /* Reset y estilos básicos */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 2rem;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    form {
+      display: grid;
+      grid-gap: 15px;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+    select, input[type="radio"] {
+      margin-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .option-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .option-group label {
+      font-weight: normal;
+    }
+    button {
+      background: #2980b9;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #1c5980;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 4px solid #43a047;
+      border-radius: 4px;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      .option-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Clasificador Automático de Riesgo</h1>
+    <p>Basado en criterios de invasividad, duración de uso, función activa y relevancia diagnóstica.</p>
+  </header>
+  <div class="container">
+    <form id="riskForm">
+      <!-- Contacto con el paciente -->
+      <div class="form-group">
+        <label for="contacto">Contacto con el paciente:</label>
+        <select id="contacto" required>
+          <option value="" disabled selected>Seleccione una opción</option>
+          <option value="0">Ninguno/Indirecto</option>
+          <option value="1">Directo</option>
+        </select>
+      </div>
+      
+      <!-- Nivel de invasividad -->
+      <div class="form-group">
+        <label>Nivel de invasividad:</label>
+        <div class="option-group">
+          <label>
+            <input type="radio" name="invasividad" value="0" required>
+            No invasivo
+          </label>
+          <label>
+            <input type="radio" name="invasividad" value="1">
+            Invasivo superficial
+          </label>
+          <label>
+            <input type="radio" name="invasividad" value="2">
+            Invasivo quirúrgico
+          </label>
+          <label>
+            <input type="radio" name="invasividad" value="3">
+            Implantable
+          </label>
+        </div>
+      </div>
+      
+      <!-- Duración de uso -->
+      <div class="form-group">
+        <label for="duracion">Duración de uso:</label>
+        <select id="duracion" required>
+          <option value="" disabled selected>Seleccione una opción</option>
+          <option value="0">Transitorio (&lt; 60 min)</option>
+          <option value="1">Corto plazo (60 min - 30 días)</option>
+          <option value="2">Largo plazo (&gt; 30 días)</option>
+        </select>
+      </div>
+      
+      <!-- ¿Es dispositivo activo? -->
+      <div class="form-group">
+        <label>¿El dispositivo es activo (requiere fuente de energía)?</label>
+        <div class="option-group">
+          <label>
+            <input type="radio" name="activo" value="0" required>
+            No
+          </label>
+          <label>
+            <input type="radio" name="activo" value="1">
+            Sí
+          </label>
+        </div>
+      </div>
+      
+      <!-- Uso en diagnóstico crítico -->
+      <div class="form-group">
+        <label>¿Se utiliza en un contexto de diagnóstico crítico?</label>
+        <div class="option-group">
+          <label>
+            <input type="radio" name="diagnostico" value="0" required>
+            No
+          </label>
+          <label>
+            <input type="radio" name="diagnostico" value="1">
+            Sí
+          </label>
+        </div>
+      </div>
+      
+      <button type="button" onclick="calculateRisk()">Calcular Clasificación de Riesgo</button>
+    </form>
+    <div id="result" class="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Función que suma los “puntos” según las respuestas y asigna la clase de riesgo
+    function calculateRisk() {
+      // Obtener valores del formulario
+      const contacto = parseInt(document.getElementById("contacto").value);
+      const duracion = parseInt(document.getElementById("duracion").value);
+      
+      const invasividadElements = document.getElementsByName("invasividad");
+      let invasividad = null;
+      for (const elem of invasividadElements) {
+        if (elem.checked) {
+          invasividad = parseInt(elem.value);
+          break;
+        }
+      }
+      
+      const activoElements = document.getElementsByName("activo");
+      let activo = null;
+      for (const elem of activoElements) {
+        if (elem.checked) {
+          activo = parseInt(elem.value);
+          break;
+        }
+      }
+      
+      const diagnosticoElements = document.getElementsByName("diagnostico");
+      let diagnostico = null;
+      for (const elem of diagnosticoElements) {
+        if (elem.checked) {
+          diagnostico = parseInt(elem.value);
+          break;
+        }
+      }
+      
+      // Validar que todos los campos estén completados
+      if (isNaN(contacto) || invasividad === null || isNaN(duracion) || activo === null || diagnostico === null) {
+        alert("Por favor, complete todos los campos.");
+        return;
+      }
+      
+      // Algoritmo de puntuación (cada criterio suma puntos)
+      // Los valores asignados son ejemplo y se pueden ajustar según las guías:
+      // - Contacto: 0 si es indirecto/ninguno, 1 si es directo
+      // - Invasividad: ya se asigna de 0 (no invasivo) a 3 (implantable)
+      // - Duración: 0, 1 o 2 puntos
+      // - Activo: +1 punto si es activo
+      // - Diagnóstico crítico: +1 punto si es crítico
+      let score = contacto + invasividad + duracion + activo + diagnostico;
+      
+      // Determinar la clasificación según la suma de puntos:
+      // 0-1: Clase I
+      // 2-3: Clase IIa
+      // 4-5: Clase IIb
+      // 6 o más: Clase III
+      let riskClass = "";
+      if (score <= 1) {
+        riskClass = "Clase I";
+      } else if (score <= 3) {
+        riskClass = "Clase IIa";
+      } else if (score <= 5) {
+        riskClass = "Clase IIb";
+      } else {
+        riskClass = "Clase III";
+      }
+      
+      // Mostrar el resultado
+      const resultDiv = document.getElementById("result");
+      resultDiv.style.display = "block";
+      resultDiv.innerHTML = `<strong>Resultado:</strong> El dispositivo se clasifica como <span style="color:#d32f2f;">${riskClass}</span> (puntuación total: ${score}).`;
+    }
+  </script>
+</body>
+</html>
